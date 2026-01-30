@@ -10,6 +10,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Taiga = "e9eb81f5-0267-4fb6-9dbb-4fd71c34045d"
 UnivariateSplines = "2552f6ce-f0d6-4ba3-bf39-bb338613ee69"
+SpecialSpaces = "cc3e65be-d4cb-4562-9ae2-5262579a9956"
 
 [compat]
 NURBS = "^0.12.0"

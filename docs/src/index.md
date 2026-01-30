@@ -1,6 +1,6 @@
 ```@setup using
 using Taiga, LinearAlgebra
-using SortedSequences, CartesianProducts, KroneckerProducts, NURBS
+using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces
 ```
 ```@meta
 DocTestSetup = quote
@@ -18,133 +18,8 @@ Tensor-product applications in isogeometric analysis.
     Examples listed on this page use following packages
     ```julia
     using Taiga, LinearAlgebra
-    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS
+    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces
     ```
-
-## Function spaces
-`Taiga.jl` distinguishes different types of spaces:
-
-- [`ScalarFunctionSpace`](@ref) for scalar valued fields like temperature and pressure fields;
-- [`VectorFunctionSpace`](@ref) for vector valued fields like displacement and velocity fields;
-- [`MixedFunctionSpace`](@ref) for compound fields in mixed problems.
-
-In particular, these are specializations of univariate and tensor-product spaces. Based
-on univariate splines and tensor-product splines implementation in `Feather` ecosystem,
-`Taiga.jl` currently implements a set of splines spaces for different applications:
-
-- [`ScalarSplineSpace`](@ref) a generic scalar spline space with (an)isotropic degrees;
-- [`VectorSplineSpace`](@ref) a generic vector spline space with (an)isotropic degrees;
-- [`RaviartThomas`](@ref) divergence-conforming mixed function space for velocities and pressure;
-- [`TaylorHood`](@ref) inf-sup stable mixed function space for velocity and pressure;
-
-The advantage of using these specialized spaces is a consistent and thus comfortable interface
-for constructing, accessing and querying the space, e.g.
-
-```@repl using
-Ω = Interval(0.0, 1.0) ⨱ Interval(0.0, 1.0);
-Δ = partition(Ω, (4, 5));
-p = 3;
-Q = ScalarSplineSpace((p-1, p-1), Δ);
-S = ScalarSplineSpace((p, p), Δ);
-V = VectorSplineSpace(S, S);
-T = TaylorHood(p, Δ);
-space_dimension(Q)
-space_dimension(S)
-space_dimension(V)
-space_dimension(T)
-space_dimensions(Q)
-space_dimensions(S)
-space_dimensions(V)
-space_dimensions(T)
-space_dimensions(T, :V)
-space_dimensions(T, :Q)
-space_constraints(S) == I
-space_constraints(T, :Q) == I
-all(space_constraints(T, :V) .== (I, I))
-```
-
-### Function space constraints
-
-Constraints are incorporated into function space via extraction operators.
-
-`to be documented...`
-
-## Fields
-A [`Field`](@ref) constructor can be called for any [`ScalarFunctionSpace`](@ref),
-[`VectorFunctionSpace`](@ref) or [`MixedFunctionSpace`](@ref).
-Setting coefficients of such a field from a solution vector is straight forward.
-
-```jldoctest; output = false
-# define domain and partition
-Ω = Interval(0.0, 1.0) ⨱ Interval(0.0, 1.0)
-Δ = partition(Ω, (3,5))
-p = (2,3)
-
-# define spaces
-S = ScalarSplineSpace(p, Δ)
-V = VectorSplineSpace(S,S)
-T = RaviartThomas(3, Δ)
-
-# Setting coefficients of a scalar field
-θʰ = Field(S)
-x = rand(space_dimension(S))
-setcoeffs!(θʰ, S, x)
-
-# Setting coefficients of a vector field
-∇θʰ = Field(V)
-x = rand(space_dimension(V))
-setcoeffs!(∇θʰ, V, x)
-
-# Setting coefficients of fields on a mixed space
-uʰ = Field(T, :V)
-pʰ = Field(T, :Q)
-x = rand(space_dimension(T))
-setcoeffs!(uʰ, T, :V, x)
-setcoeffs!(pʰ, T, :Q, x)
-
-# output
-
-```
-
-In some cases, instead of setting coefficients from a solution vector
-one might want to set coefficients of a field component from
-a vector containing solely its respective coefficients. This can be done in
-a similar way.
-
-```jldoctest; output=false
-# define Raviart-Thomas spline space
-Ω = Interval(0.0, 1.0) ⨱ Interval(0.0, 1.0)
-Δ = partition(Ω, (3,5))
-rt = RaviartThomas(3, Δ)
-
-# define fields
-uʰ = Field(rt, :V)
-pʰ = Field(rt, :Q)
-
-# generate some coefficients vectors
-x = rand(space_dimension(rt))
-xu₁ = getindex(x, mixed_space_slices(rt, :V, 1))
-xu₂ = getindex(x, mixed_space_slices(rt, :V, 2))
-xp  = getindex(x, mixed_space_slices(rt, :Q))
-
-# set coefficients of a fields all at one
-setcoeffs!(uʰ, rt, :V, x)
-setcoeffs!(pʰ, rt, :Q, x)
-
-# set coefficients of a fields one by one
-setcoeffs!(uʰ, xu₁, 1)
-setcoeffs!(uʰ, xu₂, 2)
-setcoeffs!(pʰ, xp)
-
-# test
-all(xu₁ .== uʰ[1].coeffs[:]) && all(xu₂ .== uʰ[2].coeffs[:]) && all(xp .== pʰ[1].coeffs[:])
-
-# output
-true
-
-```
-
-
 
 
 ## Postprocessing
