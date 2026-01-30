@@ -65,13 +65,13 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/cache@v2
-        with:
-          localregistry: |
-              https://github.com/SuiteSplines/SuiteSplinesRegistry.git
       - name: Configure doc environment
         shell: julia --project=docs --color=yes {0}
         run: |
           using Pkg
+          Pkg.Registry.add(
+            RegistrySpec(url="https://github.com/SuiteSplines/SuiteSplinesRegistry.git")
+          )
           Pkg.develop(PackageSpec(path=pwd()))
           Pkg.instantiate()
       - uses: julia-actions/julia-buildpkg@v1
@@ -79,9 +79,6 @@ jobs:
           localregistry: |
               https://github.com/SuiteSplines/SuiteSplinesRegistry.git
       - uses: julia-actions/julia-docdeploy@v1
-        with:
-          localregistry: |
-              https://github.com/SuiteSplines/SuiteSplinesRegistry.git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
