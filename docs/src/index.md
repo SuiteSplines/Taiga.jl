@@ -1,12 +1,8 @@
-```@setup using
-using Taiga, LinearAlgebra
-using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces
-```
 ```@meta
 DocTestSetup = quote
     using Taiga
     using LinearAlgebra
-    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS
+    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces, AbstractMappings, UnivariateSplines
 end
 ```
 
@@ -17,8 +13,9 @@ Tensor-product applications in isogeometric analysis.
 !!! note
     Examples listed on this page use following packages
     ```julia
-    using Taiga, LinearAlgebra
-    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces
+    using Taiga
+    using LinearAlgebra
+    using SortedSequences, CartesianProducts, KroneckerProducts, NURBS, SpecialSpaces, AbstractMappings, UnivariateSplines
     ```
 
 
@@ -36,12 +33,12 @@ euclidean_distance = Field((x,y) -> sqrt(x^2 + y^2))
 d = Field(space)
 project!(d, onto=euclidean_distance ∘ mapping; method=QuasiInterpolation)
 
-vtk_save_bezier("build/geometry_and_field", mapping; fields = Dict("d" => d))
-vtk_save_control_net("build/control_net", mapping)
+vtk_save_bezier("geometry_and_field", mapping; fields = Dict("d" => d))
+vtk_save_control_net("control_net", mapping)
 
 # output
 1-element Vector{String}:
- "build/control_net.vtu"
+ "control_net.vtu"
 ```
 
 ![Bezier extraction on square plate with a hole](assets/square_plate_with_hole_bezier_example.png)
@@ -105,9 +102,26 @@ operator on mapped geometries or Wachspress approximation at quadrature points.
 The syntax is close to that of `IgaFormation.Sumfactory`.
 
 ```julia
+# domain
+Ω = Interval(0.0, 1.0) ⨱ Interval(0.0, 1.0)
+
+# partition
+Δ = Partition(Ω, (3,5))
+
+# space
+p = (2,3)
+S = ScalarSplineSpace(p, Δ)
+
+# mock data
+Dim = length(S)
+nqpts = map((p,n) -> (p+1)*n + 2, p, num_elements.(S))
+f = [ map(rand, nqpts) for k ∈ 1:Dim, l ∈ 1:Dim]
+
+# derivative indicators
 ∇u = k -> ι(k, dim=Dim)
 ∇v = k -> ι(k, dim=Dim)
 
+# assemble stiffness
 ∫ = KroneckerFactory(S, S)
 for β in 1:Dim
     for α in 1:Dim
@@ -115,6 +129,7 @@ for β in 1:Dim
     end
 end
 
+# aggregated Kronecker products
 K = ∫.data
 ```
 
