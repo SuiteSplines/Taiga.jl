@@ -1,7 +1,7 @@
 name = "Taiga"
 uuid = "e9eb81f5-0267-4fb6-9dbb-4fd71c34045d"
 authors = ["Michał Mika <michal@mika.sh>"]
-version = "0.7.0"
+version = "0.7.1"
 
 [deps]
 AbstractMappings = "7dac2afd-1bf6-47b8-bc94-9dcdcd19d527"
