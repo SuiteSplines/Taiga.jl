@@ -1,0 +1,26 @@
+using Taiga, WriteVTK, NURBS
+
+# define mapping
+mapping = screw()
+mapping = refine(mapping, method=hRefinement(1))
+
+# vtk file path
+filepath = "bezier_extraction_screw"
+
+# define Bezier extraction context
+let ctx = BezierExtractionContext(mapping.space)
+    degrees = vtk_bezier_degrees(ctx)
+    cells = vtk_bezier_cells(ctx)
+    weights = vtk_extract_bezier_weights(ctx, mapping)
+    points = vtk_extract_bezier_points(ctx, mapping; bezier_weights = weights)
+
+    outfiles = vtk_grid(filepath, points..., cells; vtkversion = v"2.2") do vtk
+        vtk["HigherOrderDegrees", VTKCellData()] = degrees
+        vtk["RationalWeights", VTKPointData()] = weights
+        vtk[VTKPointData()] = "RationalWeights" => "RationalWeights"
+        vtk[VTKCellData()] = "HigherOrderDegrees" => "HigherOrderDegrees"
+    end
+end
+
+# less explicitly: 
+#vtk_save_bezier(filepath, mapping)

@@ -1,0 +1,99 @@
+using Taiga
+using IgaBase, NURBS, UnivariateSplines, SpecialSpaces
+using StaticArrays, LinearAlgebra, Krylov, SpecialFunctions
+
+# define mapping
+F = annulus(; inner_radius=11.064709488501170, outer_radius=17.61596604980483, β=2π)
+
+# refine mapping (to examplify the isogeometric paradigm)
+F = refine(F, method=pRefinement(1))
+F = refine(F, method=hRefinement(8))
+
+# define dimension
+Dim = dimension(F)
+
+# get domain mapping is defined on
+Ω = domain(F)
+
+# define space constraints
+C = ScalarSplineSpaceConstraints{Dim}()
+periodic_constraint!(C; c=collect(1:F.space[1].p), dim=1);
+left_constraint!(C; dim=2);
+right_constraint!(C; dim=2);
+
+# define scalar spline space
+S = ScalarSplineSpace(F.space)
+
+# define solution field
+uʰ = Field(S)
+
+# define field to satisfy Dirichlet boundary conditions
+ūʰ = Field(S)
+
+# define transformation from Cartesian to polar coordinates
+r(x, y) = abs(x + im * y)
+θ(x, y) = angle(x + im * y)
+
+# define analytical solution
+uₐ = ScalarFunction((x, y) -> besselj(4, r(x, y)) * cos(4θ(x, y)))
+
+# define Poisson parameters
+f = (x, y) -> uₐ(x, y); # bodyforce (-Δuʰ = f)
+ū = (x, y) -> 0.0; # function satisfying boundary conditions
+κ = (x, y) -> SMatrix{2,2,Float64}(I) # conductivity
+t = (x, y) -> @SVector [0.0; 0.0] # traction
+
+# project ū onto solution space
+project!(ūʰ, onto=Field(ū), method=Interpolation)
+
+# initialize model
+@info "Model assembly..."
+model = Poisson(F, S, C, uʰ, ūʰ, κ, f, t);
+
+# construct linear operator
+L = linear_operator(model; matrixfree=true)
+
+# construct rhs vector
+b = forcing(model)
+
+# construct preconditioner
+L̃ = linear_operator_approximation(model; method=CanonicalPolyadic, rank=2, tol=10e-4)
+P₀ = FastDiagonalization(model)
+P₁ = InnerPCG(L̃, P₀; η=10e-5, history=true)
+P₂ = InnerCG(L̃; η=10e-5, history=true)
+
+# solve unpreconditioned system
+@info "Solving linear system of equations using TaigaCG..."
+solver = TaigaCG(L)
+x₀, stats = linsolve!(solver, b)
+@info stats
+
+# solve preconditioned system
+@info "Solving linear system of equations using TaigaIPCG..."
+solver = TaigaIPCG(L, P₁)
+x₀, stats = linsolve!(solver, b)
+@info stats
+@info "InnerPCG required $(join(inner_solver_niters(P₁), ", ", " and ")) iterations." 
+
+@info "Solving linear system of equations using TaigaIPCG..."
+solver = TaigaIPCG(L, P₂)
+x₀, stats = linsolve!(solver, b)
+@info stats
+@info "InnerPCG required $(join(inner_solver_niters(P₂), ", ", " and ")) iterations." 
+
+
+# apply particular solution
+x = apply_particular_solution(model, x₀)
+
+# apply solution to field coefficients
+setcoeffs!(uʰ, S, x)
+
+# compute L₂ error norm
+L₂ = l2_error(uʰ, to=uₐ ∘ F, relative=true)[1]
+@info "L₂ error norm: " L₂
+
+# perform Bezier extraction and save results using convenience functions
+@info "Exporting results..."
+uₐʰ = Field(S)
+project!(uₐʰ, onto=Field(uₐ ∘ F); method=Interpolation)
+vtk_save_bezier("results", F; fields = Dict("uʰ" => uʰ, "uₐʰ" => uₐʰ, "ūʰ" => ūʰ))

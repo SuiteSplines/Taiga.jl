@@ -1,0 +1,15 @@
+[deps]
+CartesianProducts = "ddfd9c64-15e7-45fc-8e16-950f3835cae5"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+IgaBase = "9c103fa8-ae55-49f5-92db-ab77803cf2c4"
+KroneckerProducts = "5766f8de-d509-470a-8420-f491b24ab91b"
+Krylov = "ba0b0d4f-ebba-5204-a429-3ac8c609bfb7"
+NURBS = "3119edd0-0685-4064-9500-10252e0e5727"
+SortedSequences = "2f2e3dc8-c2cf-4b7f-b456-36845a1cbdbc"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Taiga = "e9eb81f5-0267-4fb6-9dbb-4fd71c34045d"
+UnivariateSplines = "2552f6ce-f0d6-4ba3-bf39-bb338613ee69"
+
+[compat]
+NURBS = "^0.12.0"

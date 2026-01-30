@@ -1,0 +1,5 @@
+build/
+site/
+Manifest.toml
+examples/paper/results
+examples/paper/postprocessing/latex
