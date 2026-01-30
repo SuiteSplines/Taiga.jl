@@ -1,4 +1,4 @@
-# <img src="https://github.com/SuiteSplines/Taiga.jl/blob/main/docs/src/assets/logo-dark-bg.png" alt="Taiga.jl - Logo" style="height:3em; vertical-align:middle;"> Taiga.jl
+# <picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/SuiteSplines/Taiga.jl/blob/main/docs/src/assets/logo-dark.png"><source media="(prefers-color-scheme: light)" srcset="https://github.com/SuiteSplines/Taiga.jl/blob/main/docs/src/assets/logo.png"><img src="https://github.com/SuiteSplines/Taiga.jl/blob/main/docs/src/assets/logo.png" alt="Taiga.jl - Logo" style="height:2em; vertical-align:middle;"></picture> Taiga.jl
 
 [![Documentation - latest](https://img.shields.io/badge/docs-stable-blue)](https://suitesplines.github.io/Taiga.jl/stable/)
 [![Documentation - dev](https://img.shields.io/badge/docs-dev-blue)](https://suitesplines.github.io/Taiga.jl/dev/)
