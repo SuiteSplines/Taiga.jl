@@ -21,3 +21,8 @@ makedocs(;
     ],
     doctest=false,
 )
+
+deploydocs(;
+    repo="github.com/SuiteSplines/Taiga.jl",
+    devbranch="main",
+)
